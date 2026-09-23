@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>برنامج دليل منح الائتمان</title>
+<style>
+:root{
+  --bg:#f5f4ef; --surface:#ffffff; --surface2:#efede6; --ink:#1f1e1b; --muted:#6b675f; --line:#dcd8cd;
+  --accent:#0f5c4d; --accent-ink:#ffffff; --accentSoft:#dcebe6;
+  --b:#1d5fa8; --bSoft:#dde8f5; --c:#a33b21; --cSoft:#f6e1da; --d:#6b4aa0; --dSoft:#e9e2f4;
+  --ok:#2f7a3b; --okSoft:#e0f0e2; --err:#b3261e; --errSoft:#fbe3e1; --warn:#8a6200; --warnSoft:#fbf0d4;
+  --r:12px; --font:"Segoe UI",Tahoma,"Noto Naskh Arabic","Noto Sans Arabic","Geeza Pro",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#161614; --surface:#1f1f1c; --surface2:#2a2925; --ink:#ecebe6; --muted:#a29e94; --line:#3a3933;
+  --accent:#4fb39d; --accent-ink:#0d1f1b; --accentSoft:#1e3a33;
+  --b:#7fb0ea; --bSoft:#1d2c3f; --c:#ec8e74; --cSoft:#3d2520; --d:#b7a0e0; --dSoft:#2d2540;
+  --ok:#7fcf8a; --okSoft:#1c3320; --err:#f2877f; --errSoft:#3d1f1d; --warn:#e6c065; --warnSoft:#3a3019;
+}}
+:root[data-theme="dark"]{
+  --bg:#161614; --surface:#1f1f1c; --surface2:#2a2925; --ink:#ecebe6; --muted:#a29e94; --line:#3a3933;
+  --accent:#4fb39d; --accent-ink:#0d1f1b; --accentSoft:#1e3a33;
+  --b:#7fb0ea; --bSoft:#1d2c3f; --c:#ec8e74; --cSoft:#3d2520; --d:#b7a0e0; --dSoft:#2d2540;
+  --ok:#7fcf8a; --okSoft:#1c3320; --err:#f2877f; --errSoft:#3d1f1d; --warn:#e6c065; --warnSoft:#3a3019;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6}
+body{overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+/* lock */
+#lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.lockbox{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px 22px;width:100%;max-width:380px;text-align:center}
+.lockbox h1{font-size:21px;margin:6px 0 4px}
+.lockbox p{color:var(--muted);margin:0 0 18px;font-size:14px}
+.seal{width:56px;height:56px;border-radius:50%;background:var(--accentSoft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center}
+/* app */
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 16px;max-width:1180px;margin:0 auto}
+.bar #vpill,.bar #ipill{flex:none}
+.bar h1{font-size:16px;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600;white-space:nowrap}
+.pA{background:var(--accentSoft);color:var(--accent)} .pB{background:var(--bSoft);color:var(--b)} .pC{background:var(--cSoft);color:var(--c)} .pD{background:var(--dSoft);color:var(--d)}
+.pok{background:var(--okSoft);color:var(--ok)} .perr{background:var(--errSoft);color:var(--err)} .pwarn{background:var(--warnSoft);color:var(--warn)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 12px 8px;max-width:1180px;margin:0 auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{border:0;background:transparent;padding:7px 13px;border-radius:9px;white-space:nowrap;color:var(--muted);font-weight:600}
+nav.tabs button.on{background:var(--ink);color:var(--bg)}
+main{max-width:1180px;margin:0 auto;padding:16px}
+h2{font-size:19px;margin:6px 0 12px}
+h3{font-size:16px;margin:0 0 10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.vcard{border:2px solid var(--line);border-radius:var(--r);padding:14px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.vcard.on{border-color:var(--accent)}
+.vcard .t{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
+.vcard p{margin:0;color:var(--muted);font-size:13.5px;flex:1}
+.letter{width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:800}
+.btn{border:1px solid var(--line);background:var(--surface2);padding:8px 14px;border-radius:10px;font-weight:600}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--err)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+label.f > span{font-weight:600}
+select,input[type=text],input[type=number],input[type=password],textarea{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px;width:100%;color:var(--ink);min-width:0}
+textarea{min-height:170px;resize:vertical;line-height:1.7}
+.seg{display:inline-flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table.t{border-collapse:collapse;width:100%;font-size:13.5px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:right;vertical-align:middle;white-space:nowrap}
+table.t thead th{background:var(--surface2);font-weight:700;position:sticky;top:0}
+table.t td.bad{background:var(--errSoft);color:var(--err);font-weight:700}
+table.t td.num{font-variant-numeric:tabular-nums}
+table.t td select{display:block;min-width:140px}
+.delta{font-size:11.5px;display:block}
+.up{color:var(--ok)} .down{color:var(--err)}
+.issues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto}
+.issues li{padding:8px 10px;border-radius:9px;font-size:13.5px;background:var(--errSoft);color:var(--ink);border-inline-start:4px solid var(--err)}
+.issues li.warn{background:var(--warnSoft);border-color:var(--warn)}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:99px;background:var(--dSoft);color:var(--d);margin-inline-start:6px;font-weight:700}
+.muted{color:var(--muted)} .small{font-size:13px}
+.ranklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ranklist li{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:10px;padding:6px 8px}
+.ranklist .n{width:28px;height:28px;border-radius:8px;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.ranklist input{flex:1;background:var(--surface)}
+.note{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--muted)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;z-index:50;font-weight:600;max-width:92vw;text-align:center}
+.exl{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.exl li{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.exl li.off{opacity:.55}
+.exl .d{flex:1;min-width:200px}
+.params td input{width:80px;padding:5px 6px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat b{font-size:22px}
+.preview{background:#fff;color:#1a1a1a;border-radius:10px;padding:0;overflow:auto;border:1px solid var(--line)}
+#print{display:none}
+/* ===== Guide (print & preview) ===== */
+.guide{font-family:var(--font);color:#1a1a1a;background:#fff;font-size:12px;line-height:1.65}
+.guide .pg{padding:18px 22px;page-break-after:always;break-after:page}
+.guide .pg:last-child{page-break-after:auto;break-after:auto}
+.guide .cover{min-height:170mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px;border:3px double #0f5c4d;border-radius:6px}
+.guide .cover h1{font-size:30px;margin:0;color:#0f5c4d}
+.guide .cover .v{font-size:22px;font-weight:800;padding:6px 22px;border-radius:8px;color:#fff}
+.guide .ghead{display:flex;justify-content:space-between;border-bottom:2px solid #0f5c4d;padding-bottom:4px;margin-bottom:10px;font-size:11px;color:#555}
+.guide h2{font-size:17px;color:#0f5c4d;margin:4px 0 8px}
+.guide h3{font-size:14px;margin:12px 0 6px;color:#222}
+.guide ul{margin:0;padding-inline-start:20px}
+.guide li{margin-bottom:3px}
+.guide table{border-collapse:collapse;width:100%;margin:4px 0 10px;font-size:11px}
+.guide th,.guide td{border:1px solid #9a9a9a;padding:4px 6px;text-align:center;vertical-align:middle}
+.guide th{background:#e3efeb;font-weight:700}
+.guide td.l{text-align:right}
+.guide .rk{display:inline-block;background:#0f5c4d;color:#fff;border-radius:4px;padding:0 7px;margin-inline-end:4px;font-weight:700}
+.guide .box{border:1px solid #bbb;border-radius:6px;padding:8px 10px;background:#f7f7f4;margin:6px 0}
+.guide .ok{color:#2f7a3b;font-weight:700} .guide .bad{color:#b3261e;font-weight:700}
+.guide .na{color:#999}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff}
+  body > *:not(#print){display:none!important}
+  #print{display:block!important}
+  .guide .pg{padding:0}
+  .guide .cover{min-height:180mm}
+  .guide th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .guide .cover .v,.guide .rk{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (max-width:560px){ main{padding:12px 12px} .bar{flex-wrap:wrap} .bar h1{flex-basis:100%} .card{padding:13px} .bar{padding:10px 12px} }
+</style>
+</head>
+<body>
+<div id="lock">
+  <div class="lockbox">
+    <div class="seal"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+    <h1>برنامج دليل منح الائتمان</h1>
+    <p>وثيقة داخلية محمية. أدخل كلمة المرور للمتابعة.</p>
+    <form id="lockf" autocomplete="off">
+      <input type="password" id="pw" placeholder="كلمة المرور" style="text-align:center;margin-bottom:10px">
+      <button class="btn pri" style="width:100%" id="unlockBtn">دخول</button>
+    </form>
+    <p id="lockmsg" style="margin:12px 0 0;color:var(--err);min-height:1.4em"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="bar">
+      <h1 id="apptitle"></h1>
+      <span id="vpill" class="pill"></span>
+      <span id="ipill" class="pill"></span>
+      <button class="btn sm" id="lockBtn" title="قفل">قفل</button>
+    </div>
+    <nav class="tabs" id="tabs"></nav>
+  </header>
+  <main id="main"></main>
+</div>
+<div id="print"></div>
+
+<script>
+const VAULT = /*VAULT*/{"salt":"4D6oSb3SauH3/lK9LBUFBA==","iter":200000,"iv":"NXWkvfafDX4SmpAY","ct":"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"}/*ENDVAULT*/;
+const SRC = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+/* ===== محرك القواعد ===== */
+var GUAR = ['لا يوجد', 'تعهد بتحويل مكافأة نهاية الخدمة', 'تغطية مكافأة نهاية الخدمة 60% من المديونية', 'كفيل كويتي يعمل في الحكومة', 'ضمان مالي بكامل قيمة العقد'];
+var BANK = { 1: 'تحويل راتب إلى بيتك فقط', 2: 'تحويل راتب أو تحويل بنوك (أوامر دائمة)' };
+var VNAMES = { A: 'النسخة (أ) الأساسية', B: 'النسخة (ب) المخففة', C: 'النسخة (ج) المشددة', D: 'النسخة المخصصة' };
+// dir: +1 = القيمة الأكبر أفضل للعميل، -1 = الأصغر أفضل
+var FIELDS = {
+  allowed: { l: 'السماح بالتمويل', d: 1 },
+  bank: { l: 'بنك الراتب', d: 1 },
+  minSalary: { l: 'الحد الأدنى للراتب', d: -1 },
+  minService: { l: 'الحد الأدنى لمدة الخدمة', d: -1 },
+  regularity: { l: 'أشهر انتظام الراتب', d: -1 },
+  maxAge: { l: 'السن القصوى', d: 1 },
+  dbr: { l: 'نسبة الاستقطاع', d: 1 },
+  guarantee: { l: 'الضمان المطلوب', d: -1 },
+  card: { l: 'حد البطاقة الائتمانية', d: 1 },
+};
+var TIERN = ['أقل من 3 سنوات', '3 إلى أقل من 5 سنوات', '5 سنوات فأكثر'];
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function K(n, e) { return n + '|' + e; }
+function r500(x) { return Math.round(x / 500) * 500; }
+function f500(x) { return Math.floor(x / 500) * 500; }
+function r50(x) { return Math.round(x / 50) * 50; }
+function natName(st, id) { var n = st.nats.find(function (x) { return x.id === id; }); return n ? n.name : id; }
+function empName(st, id) { var n = st.emps.find(function (x) { return x.id === id; }); return n ? n.name : id; }
+
+function mapTiers(s, fn) {
+  ['b1', 'b2'].forEach(function (b) {
+    s.tiers[b] = s.tiers[b].map(function (x, ti) { return fn(x[0], x[1], ti, b); });
+  });
+}
+
+function buildVersion(st, v) {
+  if (v === 'A') return clone(st.base);
+  if (v === 'D') return clone(st.custom || st.base);
+  var out = clone(st.base), p = st.params[v], c = st.caps;
+  st.nats.forEach(function (n, ni) {
+    st.emps.forEach(function (e, ei) {
+      var s = out[K(n.id, e.id)];
+      if (!s) return;
+      var pe = Math.min(ei, (p.amtEmp || []).length - 1);
+      if (v === 'B') {
+        var f = 1 + ((p.amtNat[ni] || 0) + (p.amtEmp[pe] || 0)) / 100;
+        mapTiers(s, function (a, t) {
+          if (!a) return [0, 0];
+          var nt = t > c.consumerTenor ? Math.min(c.housingTenor, t + (p.tenorExt[ni] || 0)) : t;
+          return [Math.min(c.total, r500(a * f)), nt];
+        });
+        s.card = s.card ? Math.min(c.card, r500(s.card * f)) : 0;
+        s.minSalary = r50(s.minSalary * (1 - (p.salaryCut[ni] || 0) / 100));
+        s.minService = Math.round(s.minService * (1 - (p.serviceCut[ni] || 0) / 100));
+        s.regularity = Math.max(1, s.regularity - (p.regCut[ni] || 0));
+        s.guarantee = Math.max(0, s.guarantee - (p.guarCut[ni] || 0));
+      } else if (v === 'C') {
+        var g = Math.max(0, 1 - ((p.amtNat[ni] || 0) + (p.amtEmp[pe] || 0)) / 100);
+        mapTiers(s, function (a, t) {
+          if (!a) return [0, 0];
+          return [f500(a * g), Math.min(t, p.tenorCap[ni] || c.housingTenor)];
+        });
+        s.card = f500(s.card * g);
+        s.minSalary = r50(s.minSalary * (1 + (p.salaryAdd[ni] || 0) / 100));
+        s.minService = s.minService + (p.serviceAdd[ni] || 0);
+        s.regularity = Math.min(12, s.regularity + (p.regAdd[ni] || 0));
+        s.maxAge = Math.min(s.maxAge, p.ageCap[ni] || 99);
+        s.dbr = Math.min(s.dbr, p.dbrCap[ni] || 40);
+        s.guarantee = Math.min(4, s.guarantee + (p.guarAdd[ni] || 0));
+        if (p.suspendLastEmp[ni] && ei === st.emps.length - 1) {
+          s.allowed = false;
+          mapTiers(s, function () { return [0, 0]; });
+          s.card = 0;
+        }
+      }
+    });
+  });
+  return out;
+}
+
+var EXF = {
+  amount: 'حد التمويل', tenor: 'مدة الائتمان', minSalary: 'الحد الأدنى للراتب', minService: 'الحد الأدنى لمدة الخدمة (يوم)',
+  regularity: 'أشهر انتظام الراتب', maxAge: 'السن القصوى', dbr: 'نسبة الاستقطاع', guarantee: 'الضمان المطلوب',
+  card: 'حد البطاقة', allowed: 'السماح بالتمويل', bank: 'بنك الراتب', note: 'ضابط إضافي (نص)'
+};
+var EXOP = { set: 'تعيين قيمة', pct: 'تعديل بنسبة %', add: 'إضافة / طرح' };
+
+function applyOp(v, op, val) {
+  val = Number(val);
+  if (op === 'set') return val;
+  if (op === 'pct') return v * (1 + val / 100);
+  if (op === 'add') return v + val;
+  return v;
+}
+
+function applyExceptions(st, segs) {
+  var c = st.caps;
+  (st.exceptions || []).forEach(function (x) {
+    if (!x.active) return;
+    Object.keys(segs).forEach(function (k) {
+      var pr = k.split('|');
+      if (x.nat !== '*' && x.nat !== pr[0]) return;
+      if (x.emp !== '*' && x.emp !== pr[1]) return;
+      var s = segs[k];
+      if (x.field === 'note') { s.notes = (s.notes ? s.notes + ' ' : '') + x.value; s.exNote = true; return; }
+      if (x.field === 'amount' || x.field === 'tenor') {
+        mapTiers(s, function (a, t, ti, b) {
+          if ((x.band && x.band !== '*' && x.band !== b) || (x.tier !== undefined && x.tier !== '*' && Number(x.tier) !== ti)) return [a, t];
+          if (x.field === 'amount') return [Math.max(0, Math.min(c.total, r500(applyOp(a, x.op, x.value)))), t];
+          return [a, Math.max(0, Math.min(c.housingTenor, Math.round(applyOp(t, x.op, x.value))))];
+        });
+        return;
+      }
+      if (x.field === 'allowed') { s.allowed = Number(x.value) === 1; return; }
+      var v = applyOp(Number(s[x.field]), x.op, x.value);
+      if (x.field === 'minSalary') v = r50(v);
+      else if (x.field === 'card') v = Math.min(c.card, r500(v));
+      else if (x.field === 'dbr') v = Math.min(c.dbr, Math.round(v));
+      else if (x.field === 'guarantee') v = Math.max(0, Math.min(4, Math.round(v)));
+      else if (x.field === 'bank') v = Math.max(1, Math.min(2, Math.round(v)));
+      else v = Math.round(v);
+      s[x.field] = Math.max(0, v);
+    });
+  });
+  return segs;
+}
+
+function finalSegments(st, v) { return applyExceptions(st, buildVersion(st, v || st.active)); }
+
+function fmtN(x) { return Number(x).toLocaleString('en-US'); }
+function fmtAmt(st, a) { if (!a) return '—'; return a >= st.caps.total ? fmtN(a) + ' (الحد الأقصى)' : fmtN(a); }
+function fmtField(st, f, v) {
+  if (f === 'allowed') return v ? 'مسموح' : 'غير مسموح';
+  if (f === 'bank') return BANK[v] || v;
+  if (f === 'guarantee') return GUAR[v] || v;
+  if (f === 'dbr') return v + '%';
+  if (f === 'minService') return v ? v + ' يوم' : 'من أول يوم';
+  if (f === 'regularity') return v + (v > 2 ? ' أشهر' : ' شهر');
+  if (f === 'maxAge') return v + ' عاماً';
+  if (f === 'minSalary' || f === 'card') return fmtN(v) + ' د.ك';
+  return v;
+}
+
+function validate(st, segs) {
+  var out = [], c = st.caps, N = st.nats, E = st.emps;
+  function push(level, type, msg, keys) { out.push({ level: level, type: type, msg: msg, keys: keys, id: type + ':' + msg }); }
+  // سقوف بنك الكويت المركزي والتدرج الداخلي
+  N.forEach(function (n) {
+    E.forEach(function (e) {
+      var k = K(n.id, e.id), s = segs[k], nm = n.name + ' / ' + e.name;
+      if (!s || !s.allowed) return;
+      ['b1', 'b2'].forEach(function (b) {
+        var bl = b === 'b1' ? 'رواتب أقل من ' + fmtN(st.threshold) : 'رواتب ' + fmtN(st.threshold) + ' فأكثر';
+        s.tiers[b].forEach(function (x, ti) {
+          if (x[0] > c.total) push('err', 'cap', nm + ': حد التمويل ' + fmtN(x[0]) + ' يتجاوز سقف البنك المركزي ' + fmtN(c.total) + ' (' + bl + ')', [k]);
+          if (x[1] > c.housingTenor) push('err', 'cap', nm + ': مدة ' + x[1] + ' شهراً تتجاوز السقف ' + c.housingTenor + ' (' + bl + ')', [k]);
+          if (ti > 0) {
+            var pv = s.tiers[b][ti - 1];
+            if (x[0] < pv[0]) push('warn', 'tier', nm + ': حد شريحة الخدمة «' + TIERN[ti] + '» أقل من الشريحة الأقدم خدمةً الأقل (' + bl + ')', [k]);
+            if (x[1] < pv[1]) push('warn', 'tier', nm + ': مدة شريحة الخدمة «' + TIERN[ti] + '» أقل من الشريحة الأقل خدمةً (' + bl + ')', [k]);
+          }
+          if (b === 'b2' && x[0] < s.tiers.b1[ti][0]) push('warn', 'tier', nm + ': حد الرواتب المرتفعة أقل من حد الرواتب الأدنى (' + TIERN[ti] + ')', [k]);
+        });
+      });
+      if (s.dbr > c.dbr) push('err', 'cap', nm + ': نسبة الاستقطاع ' + s.dbr + '% تتجاوز ' + c.dbr + '%', [k]);
+      if (s.card > c.card) push('err', 'cap', nm + ': حد البطاقة يتجاوز ' + fmtN(c.card), [k]);
+    });
+  });
+  function cmp(hi, lo, hiName, loName, dimLabel) {
+    var a = segs[hi], b = segs[lo];
+    if (!a || !b) return;
+    if (!a.allowed && b.allowed) { push('err', 'rank', dimLabel + ': ' + loName + ' مسموح له بالتمويل بينما ' + hiName + ' (الأعلى تصنيفاً) غير مسموح', [hi, lo]); return; }
+    if (!a.allowed || !b.allowed) return;
+    Object.keys(FIELDS).forEach(function (f) {
+      if (f === 'allowed') return;
+      var d = FIELDS[f].d, va = Number(a[f]), vb = Number(b[f]);
+      if ((d > 0 && vb > va) || (d < 0 && vb < va))
+        push('err', 'rank', dimLabel + ': ' + loName + ' يحصل على ' + FIELDS[f].l + ' أفضل من ' + hiName + ' (' + fmtField(st, f, vb) + ' مقابل ' + fmtField(st, f, va) + ')', [hi, lo]);
+    });
+    ['b1', 'b2'].forEach(function (bd) {
+      for (var ti = 0; ti < 3; ti++) {
+        var x = a.tiers[bd][ti], y = b.tiers[bd][ti];
+        var lbl = ' [' + TIERN[ti] + (bd === 'b2' ? '، رواتب مرتفعة' : '') + ']';
+        if (y[0] > x[0]) push('err', 'rank', dimLabel + ': ' + loName + ' يحصل على حد تمويل أعلى من ' + hiName + ' (' + fmtN(y[0]) + ' مقابل ' + fmtN(x[0]) + ')' + lbl, [hi, lo]);
+        if (y[1] > x[1]) push('err', 'rank', dimLabel + ': ' + loName + ' يحصل على مدة أطول من ' + hiName + ' (' + y[1] + ' مقابل ' + x[1] + ' شهراً)' + lbl, [hi, lo]);
+      }
+    });
+  }
+  E.forEach(function (e) {
+    for (var i = 0; i < N.length - 1; i++)
+      cmp(K(N[i].id, e.id), K(N[i + 1].id, e.id), N[i].name, N[i + 1].name, 'ترتيب الجنسية – ' + e.name);
+  });
+  N.forEach(function (n) {
+    for (var i = 0; i < E.length - 1; i++)
+      cmp(K(n.id, E[i].id), K(n.id, E[i + 1].id), E[i].name, E[i + 1].name, 'ترتيب جهة العمل – ' + n.name);
+  });
+  return out;
+}
+
+function validateMarked(st, v) {
+  var noEx = validate(st, buildVersion(st, v));
+  var withEx = validate(st, finalSegments(st, v));
+  var seen = {};
+  noEx.forEach(function (i) { seen[i.id] = 1; });
+  withEx.forEach(function (i) { i.fromEx = !seen[i.id]; });
+  return withEx;
+}
+
+// إعادة الترتيب: dim = 'nats' | 'emps'
+function moveRank(st, dim, from, to) {
+  if (to < 0 || to >= st[dim].length || from === to) return;
+  var oldIds = st[dim].map(function (x) { return x.id; });
+  var item = st[dim].splice(from, 1)[0];
+  st[dim].splice(to, 0, item);
+  if (st.rankMode !== 'ladder') return;
+  var newIds = st[dim].map(function (x) { return x.id; });
+  var other = (dim === 'nats' ? st.emps : st.nats).map(function (x) { return x.id; });
+  ['base', 'custom'].forEach(function (which) {
+    var src = st[which];
+    if (!src) return;
+    var dst = {};
+    newIds.forEach(function (nid, p) {
+      var oid = oldIds[p];
+      other.forEach(function (o) {
+        var kNew = dim === 'nats' ? K(nid, o) : K(o, nid);
+        var kOld = dim === 'nats' ? K(oid, o) : K(o, oid);
+        dst[kNew] = clone(src[kOld]);
+        dst[kNew].notes = src[kNew] ? src[kNew].notes : '';
+      });
+    });
+    st[which] = dst;
+  });
+}
+
+if (typeof module !== 'undefined') module.exports = { buildVersion: buildVersion, finalSegments: finalSegments, validate: validate, validateMarked: validateMarked, moveRank: moveRank, clone: clone, K: K };
+
+
+/* ===== تشفير ===== */
+const te = new TextEncoder(), td = new TextDecoder();
+function b64(buf){ const b=new Uint8Array(buf); let s=''; for(let i=0;i<b.length;i+=8192) s+=String.fromCharCode.apply(null,b.subarray(i,i+8192)); return btoa(s); }
+function ub64(s){ const bin=atob(s); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u; }
+async function deriveKey(pw, salt, iter){
+  const base = await crypto.subtle.importKey('raw', te.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:iter, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function sealObj(key, salt, iter, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, te.encode(JSON.stringify(obj)));
+  return {salt:b64(salt), iter, iv:b64(iv), ct:b64(ct)};
+}
+async function openObj(pw, box){
+  const salt = ub64(box.salt), key = await deriveKey(pw, salt, box.iter);
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:ub64(box.iv)}, key, ub64(box.ct));
+  return {key, salt, iter:box.iter, obj:JSON.parse(td.decode(pt))};
+}
+
+/* ===== الحالة ===== */
+let ST=null, KEY=null, SALT=null, ITER=200000, TAB='home', UI={nat:null, emp:null, scope:'seg', target:'D', sub:'seg', mField:'amount', mBand:'b1', mTier:2, mCmp:false, txt:'general', txtNat:null, txtVer:'A'};
+const LSK='cgp_state_v1';
+function lsGet(){ try{ return JSON.parse(localStorage.getItem(LSK)); }catch(e){ return null; } }
+function lsSet(v){ try{ localStorage.setItem(LSK, JSON.stringify(v)); return true; }catch(e){ return false; } }
+let saveT=null;
+function persist(){ clearTimeout(saveT); saveT=setTimeout(async()=>{ try{ lsSet(await sealObj(KEY,SALT,ITER,ST)); }catch(e){} },250); }
+
+async function unlock(pw){
+  if(!window.crypto || !crypto.subtle){ throw new Error('nocrypto'); }
+  const saved = lsGet();
+  if(saved && saved.ct){
+    try{ const r=await openObj(pw, saved); KEY=r.key; SALT=r.salt; ITER=r.iter; ST=r.obj; return; }catch(e){}
+  }
+  const r = await openObj(pw, VAULT);
+  KEY=r.key; SALT=r.salt; ITER=r.iter; ST=r.obj;
+  if(saved && saved.ct){ toastLater='تم فتح البيانات المضمنة في الملف. توجد نسخة محفوظة على هذا الجهاز بكلمة مرور مختلفة.'; }
+  persist();
+}
+let toastLater=null;
+document.getElementById('lockf').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const m=document.getElementById('lockmsg'), b=document.getElementById('unlockBtn');
+  m.textContent=''; b.disabled=true; b.textContent='جارٍ الفتح...';
+  try{ await unlock(document.getElementById('pw').value); start(); }
+  catch(e){ m.textContent = e.message==='nocrypto' ? 'المتصفح لا يدعم التشفير. افتح الملف في Chrome أو عبر رابط https.' : 'كلمة المرور غير صحيحة.'; }
+  b.disabled=false; b.textContent='دخول';
+});
+document.getElementById('lockBtn').onclick=()=>{ location.reload(); };
+
+/* ===== أدوات ===== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+function opts(list, cur, lab){ const vals=list.slice(); if(cur!=null && !vals.some(v=>String(v)===String(cur))) vals.push(cur); if(typeof vals[0]==='number') vals.sort((a,b)=>a-b); return vals.map(v=>`<option value="${esc(v)}"${String(v)===String(cur)?' selected':''}>${esc(lab?lab(v):v)}</option>`).join(''); }
+function range(a,b,s){ const r=[]; for(let x=a;x<=b;x+=s) r.push(x); return r; }
+function download(name, text, type){ const blob=new Blob([text],{type:type||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1500); }
+function vClass(v){ return 'p'+v; }
+function versions(){ return ST.custom ? ['A','B','C','D'] : ['A','B','C']; }
+function issuesNow(){ return validateMarked(ST, ST.active); }
+
+const TABS=[['home','الرئيسية'],['matrix','مصفوفة الحدود'],['manual','التحكم اليدوي'],['rank','ترتيب التصنيف'],['except','الاستثناءات'],['preview','معاينة الدليل'],['settings','الإعدادات']];
+function start(){
+  $('#lock').classList.add('hidden'); $('#app').classList.remove('hidden');
+  UI.nat=ST.nats[0].id; UI.emp=ST.emps[0].id; UI.txtNat=ST.nats[0].id;
+  render();
+  if(toastLater){ toast(toastLater); toastLater=null; }
+}
+function render(){
+  $('#apptitle').textContent = ST.meta.title;
+  const vp=$('#vpill'); vp.className='pill '+vClass(ST.active); vp.textContent=VNAMES[ST.active];
+  const iss=issuesNow(), errs=iss.filter(i=>i.level==='err').length;
+  const ip=$('#ipill'); ip.className='pill '+(iss.length? (errs?'perr':'pwarn') : 'pok'); ip.textContent = iss.length? (iss.length+' تنبيه') : 'الترتيب سليم';
+  ip.onclick=()=>{ TAB='home'; render(); };
+  $('#tabs').innerHTML = TABS.map(([k,l])=>`<button data-tab="${k}" class="${TAB===k?'on':''}">${l}</button>`).join('');
+  $$('#tabs button').forEach(b=>b.onclick=()=>{ TAB=b.dataset.tab; render(); window.scrollTo(0,0); });
+  const m=$('#main');
+  ({home:rHome, matrix:rMatrix, manual:rManual, rank:rRank, except:rExcept, preview:rPreview, settings:rSettings})[TAB](m, iss);
+}
+function issuesHTML(iss, max){
+  if(!iss.length) return `<p class="pill pok" style="display:inline-flex;white-space:normal">لا توجد انعكاسات في الترتيب ولا تجاوز لسقوف بنك الكويت المركزي</p>`;
+  const list = iss.slice(0, max||400);
+  return `<ul class="issues">${list.map(i=>`<li class="${i.level}">${esc(i.msg)}${i.fromEx?'<span class="tag">ناتج عن استثناء</span>':''}</li>`).join('')}</ul>`+(iss.length>list.length?`<p class="small muted">و${iss.length-list.length} تنبيهات أخرى…</p>`:'');
+}
+
+/* ===== الرئيسية ===== */
+function rHome(m, iss){
+  const colors={A:'var(--accent)',B:'var(--b)',C:'var(--c)',D:'var(--d)'}, soft={A:'var(--accentSoft)',B:'var(--bSoft)',C:'var(--cSoft)',D:'var(--dSoft)'};
+  const L={A:'أ',B:'ب',C:'ج',D:'م'};
+  const exOn=ST.exceptions.filter(x=>x.active).length;
+  m.innerHTML = `
+  <h2>اختيار نسخة الدليل</h2>
+  <div class="grid g4">${versions().map(v=>`
+    <div class="vcard ${ST.active===v?'on':''}">
+      <div class="t"><span class="letter" style="background:${soft[v]};color:${colors[v]}">${L[v]}</span>${VNAMES[v]}</div>
+      <p>${esc(ST.texts.versionNotes[v]||'')}</p>
+      <div class="row">${ST.active===v?'<span class="pill pok">النسخة المعتمدة حالياً</span>':`<button class="btn pri" data-pick="${v}">اعتماد هذه النسخة</button>`}</div>
+    </div>`).join('')}
+    ${ST.custom?'':`<div class="vcard"><div class="t"><span class="letter" style="background:var(--dSoft);color:var(--d)">م</span>نسخة مخصصة</div><p>اضبط الحدود والشروط يدوياً بدلاً من النسخ الثلاث.</p><div class="row"><button class="btn" id="goManual">فتح التحكم اليدوي</button></div></div>`}
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">تصدير ${VNAMES[ST.active]}</h3>
+      <div class="row">
+        <button class="btn pri" id="doPrint">طباعة / حفظ PDF</button>
+        <button class="btn" id="doDl">تنزيل نسخة للطباعة</button>
+      </div>
+    </div>
+    <p class="small muted" style="margin:8px 0 0">«طباعة / حفظ PDF» تفتح نافذة الطباعة؛ اختر «حفظ بتنسيق PDF». إن لم تظهر النافذة (مثل داخل Acode)، استخدم «تنزيل نسخة للطباعة» ثم افتح الملف في Chrome واطبعه.</p>
+  </div>
+  <div class="grid g3">
+    <div class="card stat"><span class="muted small">الشرائح المسموح لها</span><b>${Object.values(finalSegments(ST)).filter(s=>s.allowed).length} / ${ST.nats.length*ST.emps.length}</b></div>
+    <div class="card stat"><span class="muted small">الاستثناءات المفعّلة</span><b>${exOn}</b></div>
+    <div class="card stat"><span class="muted small">تنبيهات الترتيب والسقوف</span><b style="color:${iss.length?'var(--err)':'var(--ok)'}">${iss.length}</b></div>
+  </div>
+  <div class="card"><h3>فحص منطقية الترتيب – ${VNAMES[ST.active]}</h3>
+    <p class="small muted" style="margin-top:0">ترتيب الجنسية: ${ST.nats.map((n,i)=>(i+1)+'. '+esc(n.name)).join(' ← ')}<br>ترتيب جهة العمل: ${ST.emps.map((n,i)=>(i+1)+'. '+esc(n.name)).join(' ← ')}</p>
+    ${issuesHTML(iss)}
+  </div>`;
+  $$('[data-pick]',m).forEach(b=>b.onclick=()=>{ ST.active=b.dataset.pick; persist(); render(); toast('تم اعتماد '+VNAMES[ST.active]); });
+  const gm=$('#goManual',m); if(gm) gm.onclick=()=>{ TAB='manual'; render(); };
+  $('#doPrint',m).onclick=doPrint; $('#doDl',m).onclick=doDownloadGuide;
+}
+
+/* ===== المصفوفة ===== */
+function cellVal(s, f, b, t){
+  if(!s) return null;
+  if(f==='amount') return s.allowed? s.tiers[b][t][0] : null;
+  if(f==='tenor') return s.allowed? s.tiers[b][t][1] : null;
+  return s.allowed? s[f] : null;
+}
+function rMatrix(m, iss){
+  const f=UI.mField, segs=finalSegments(ST), A=finalSegments(ST,'A');
+  const bad=new Set(); iss.forEach(i=>i.keys.forEach(k=>bad.add(k)));
+  const fl={amount:'حد التمويل (د.ك)',tenor:'مدة الائتمان (شهر)',minSalary:'الحد الأدنى للراتب',minService:'الحد الأدنى لمدة الخدمة',regularity:'انتظام الراتب',maxAge:'السن القصوى',dbr:'نسبة الاستقطاع',guarantee:'الضمان المطلوب',card:'حد البطاقة',bank:'بنك الراتب'};
+  const tiered = f==='amount'||f==='tenor';
+  m.innerHTML = `<h2>مصفوفة ${VNAMES[ST.active]}</h2>
+  <div class="card"><div class="grid g4">
+    <label class="f"><span>البند</span><select id="mF">${Object.keys(fl).map(k=>`<option value="${k}"${k===f?' selected':''}>${fl[k]}</option>`).join('')}</select></label>
+    ${tiered?`<label class="f"><span>شريحة الراتب</span><select id="mB"><option value="b1"${UI.mBand==='b1'?' selected':''}>أقل من ${fmtN(ST.threshold)} د.ك</option><option value="b2"${UI.mBand==='b2'?' selected':''}>${fmtN(ST.threshold)} د.ك فأكثر</option></select></label>
+    <label class="f"><span>مدة الخدمة</span><select id="mT">${TIERN.map((t,i)=>`<option value="${i}"${UI.mTier==i?' selected':''}>${t}</option>`).join('')}</select></label>`:''}
+    <label class="f"><span>المقارنة</span><select id="mC"><option value="0">بدون</option><option value="1"${UI.mCmp?' selected':''}>مقارنة مع النسخة (أ)</option></select></label>
+  </div></div>
+  <div class="tw"><table class="t"><thead><tr><th>جهة العمل \\ الجنسية</th>${ST.nats.map((n,i)=>`<th>${i+1}. ${esc(n.name)}</th>`).join('')}</tr></thead><tbody>
+  ${ST.emps.map((e,ei)=>`<tr><th>${ei+1}. ${esc(e.name)}</th>${ST.nats.map(n=>{
+    const k=K(n.id,e.id), v=cellVal(segs[k],f,UI.mBand,UI.mTier), a=cellVal(A[k],f,UI.mBand,UI.mTier);
+    let txt = v==null? '<span class="muted">غير مسموح</span>' : (f==='amount'? esc(fmtAmt(ST,v)) : f==='tenor'? v+' شهراً' : esc(fmtField(ST,f,v)));
+    let d='';
+    if(UI.mCmp && v!=null && a!=null && typeof v==='number' && v!==a){ const pc=a? Math.round((v-a)/a*100):0; d=`<span class="delta ${v>a?'up':'down'}">${v>a?'+':''}${pc}% عن (أ)</span>`; }
+    return `<td class="num ${bad.has(k)?'bad':''}">${txt}${d}</td>`; }).join('')}</tr>`).join('')}
+  </tbody></table></div>
+  <p class="small muted">الخلايا الحمراء تحتوي على انعكاس في الترتيب أو تجاوز لسقف. التفاصيل في الصفحة الرئيسية.</p>`;
+  $('#mF',m).onchange=e=>{UI.mField=e.target.value; render();};
+  if($('#mB',m)) $('#mB',m).onchange=e=>{UI.mBand=e.target.value; render();};
+  if($('#mT',m)) $('#mT',m).onchange=e=>{UI.mTier=Number(e.target.value); render();};
+  $('#mC',m).onchange=e=>{UI.mCmp=e.target.value==='1'; render();};
+}
+
+/* ===== التحكم اليدوي ===== */
+const OPT={
+  minSalary: range(100,3000,50), minService:[0,30,60,90,100,180,270,365,540,730,1095],
+  regularity: range(1,12,1), maxAge: range(50,75,1), dbr:[20,25,30,35,40], card: range(0,10000,500),
+  amount: range(0,70000,500), tenor:[0,12,24,36,48,60,72,84,96,108,120,132,144,156,168,180]
+};
+function targetSegs(){ return UI.target==='A'? ST.base : ST.custom; }
+function rManual(m){
+  const segTarget = targetSegs();
+  let h = `<h2>التحكم اليدوي</h2>
+  <div class="card"><div class="row" style="justify-content:space-between">
+    <div class="seg" id="subSeg"><button data-s="seg" class="${UI.sub==='seg'?'on':''}">حدود وشروط الشرائح</button><button data-s="txt" class="${UI.sub==='txt'?'on':''}">صفحات الضوابط والشروط</button></div>
+    ${UI.sub==='seg'?`<div class="seg" id="tgtSeg"><button data-t="D" class="${UI.target==='D'?'on':''}">تعديل النسخة المخصصة</button><button data-t="A" class="${UI.target==='A'?'on':''}">تعديل النسخة الأساسية (أ)</button></div>`:''}
+  </div>
+  ${UI.sub==='seg' && UI.target==='A'?'<p class="note" style="margin:10px 0 0">تعديل النسخة الأساسية ينعكس تلقائياً على النسختين (ب) و(ج) لأنهما مشتقتان منها بالنسب المحددة في الإعدادات.</p>':''}
+  </div>`;
+  if(UI.sub==='txt'){ m.innerHTML=h+txtEditor(); bindSub(m); bindTxt(m); return; }
+  if(!segTarget){
+    h += `<div class="card"><h3>إنشاء نسخة مخصصة</h3><p class="muted small">اختر النسخة التي تنطلق منها، ثم عدّل ما تريد. تصبح النسخة المخصصة هي المعتمدة.</p>
+    <div class="row"><button class="btn pri" data-from="A">انطلاقاً من (أ)</button><button class="btn" data-from="B">انطلاقاً من (ب)</button><button class="btn" data-from="C">انطلاقاً من (ج)</button></div></div>`;
+    m.innerHTML=h; bindSub(m);
+    $$('[data-from]',m).forEach(b=>b.onclick=()=>{ ST.custom=buildVersion(ST,b.dataset.from); ST.active='D'; persist(); toast('تم إنشاء النسخة المخصصة'); render(); });
+    return;
+  }
+  const k=K(UI.nat,UI.emp), s=segTarget[k];
+  const tierRows = ['b1','b2'].map(b=>`<tr><th>${b==='b1'?'رواتب أقل من '+fmtN(ST.threshold):'رواتب '+fmtN(ST.threshold)+' فأكثر'}</th>${[0,1,2].map(t=>`<td><select data-b="${b}" data-t="${t}" data-i="0">${opts(OPT.amount,s.tiers[b][t][0],v=>v?fmtN(v)+' د.ك':'—')}</select><select style="margin-top:4px" data-b="${b}" data-t="${t}" data-i="1">${opts(OPT.tenor,s.tiers[b][t][1],v=>v?v+' شهراً':'—')}</select></td>`).join('')}</tr>`).join('');
+  h += `<div class="card">
+    <div class="grid g3">
+      <label class="f"><span>الجنسية</span><select id="selNat">${ST.nats.map((n,i)=>`<option value="${n.id}"${n.id===UI.nat?' selected':''}>${i+1}. ${esc(n.name)}</option>`).join('')}</select></label>
+      <label class="f"><span>جهة العمل</span><select id="selEmp">${ST.emps.map((n,i)=>`<option value="${n.id}"${n.id===UI.emp?' selected':''}>${i+1}. ${esc(n.name)}</option>`).join('')}</select></label>
+      <label class="f"><span>تطبيق التعديل على</span><select id="selScope">
+        <option value="seg"${UI.scope==='seg'?' selected':''}>هذه الشريحة فقط</option>
+        <option value="nat"${UI.scope==='nat'?' selected':''}>كل جهات العمل لهذه الجنسية</option>
+        <option value="emp"${UI.scope==='emp'?' selected':''}>كل الجنسيات في جهة العمل هذه</option>
+        <option value="all"${UI.scope==='all'?' selected':''}>جميع الشرائح</option></select></label>
+    </div></div>
+  <div class="card" id="segForm">
+    <h3>المرتكزات الأساسية</h3>
+    <div class="grid g3">
+      <label class="f"><span>السماح بالتمويل</span><select data-f="allowed">${opts([1,0], s.allowed?1:0, v=>v?'مسموح':'غير مسموح')}</select></label>
+      <label class="f"><span>بنك الراتب</span><select data-f="bank">${opts([2,1], s.bank, v=>BANK[v])}</select></label>
+      <label class="f"><span>الحد الأدنى للراتب</span><select data-f="minSalary">${opts(OPT.minSalary, s.minSalary, v=>fmtN(v)+' د.ك')}</select></label>
+      <label class="f"><span>الحد الأدنى لمدة الخدمة</span><select data-f="minService">${opts(OPT.minService, s.minService, v=>v?v+' يوم':'من أول يوم')}</select></label>
+      <label class="f"><span>انتظام الراتب (أشهر)</span><select data-f="regularity">${opts(OPT.regularity, s.regularity, v=>v+' شهر')}</select></label>
+      <label class="f"><span>السن القصوى في نهاية العقد</span><select data-f="maxAge">${opts(OPT.maxAge, s.maxAge, v=>v+' عاماً')}</select></label>
+      <label class="f"><span>نسبة الاستقطاع</span><select data-f="dbr">${opts(OPT.dbr, s.dbr, v=>v+'%')}</select></label>
+      <label class="f"><span>الضمان المطلوب</span><select data-f="guarantee">${opts([0,1,2,3,4], s.guarantee, v=>GUAR[v])}</select></label>
+      <label class="f"><span>حد البطاقة الائتمانية</span><select data-f="card">${opts(OPT.card, s.card, v=>v?fmtN(v)+' د.ك':'لا تمنح')}</select></label>
+    </div>
+    <h3 style="margin-top:16px">الحد الائتماني المسموح ومدة الائتمان</h3>
+    <div class="tw"><table class="t"><thead><tr><th>شريحة الراتب</th>${TIERN.map(t=>`<th>${t}</th>`).join('')}</tr></thead><tbody>${tierRows}</tbody></table></div>
+    <label class="f" style="margin-top:14px"><span>ضوابط أخرى لهذه الشريحة</span><textarea data-f="notes" style="min-height:80px">${esc(s.notes||'')}</textarea></label>
+    <div class="row" style="margin-top:12px"><button class="btn pri" id="saveSeg">حفظ التعديل</button>
+      ${UI.target==='D'?'<button class="btn danger" id="delCustom">حذف النسخة المخصصة</button>':''}</div>
+  </div>
+  <div class="card"><h3>أثر التعديل على الترتيب</h3><div id="segIss"></div></div>`;
+  m.innerHTML=h; bindSub(m);
+  $('#selNat',m).onchange=e=>{UI.nat=e.target.value; render();};
+  $('#selEmp',m).onchange=e=>{UI.emp=e.target.value; render();};
+  $('#selScope',m).onchange=e=>{UI.scope=e.target.value;};
+  const segIss = validate(ST, UI.target==='A'? ST.base : ST.custom).filter(i=>i.keys.includes(k));
+  $('#segIss',m).innerHTML = segIss.length? issuesHTML(segIss) : '<span class="pill pok" style="white-space:normal">هذه الشريحة متسقة مع الترتيب</span>';
+  $('#saveSeg',m).onclick=()=>{
+    const W={}; $$('[data-f]',m).forEach(el=>{ W[el.dataset.f]=el.dataset.f==='notes'? el.value : Number(el.value); });
+    W.allowed = W.allowed===1;
+    const T=clone(s.tiers); $$('[data-b]',m).forEach(el=>{ T[el.dataset.b][Number(el.dataset.t)][Number(el.dataset.i)]=Number(el.value); });
+    const keys = Object.keys(segTarget).filter(kk=>{ const [n,e]=kk.split('|'); return UI.scope==='all' || (UI.scope==='seg'&&kk===k) || (UI.scope==='nat'&&n===UI.nat) || (UI.scope==='emp'&&e===UI.emp); });
+    let changed=0;
+    keys.forEach(kk=>{ const d=segTarget[kk];
+      Object.keys(W).forEach(f=>{ if(W[f]!==s[f]){ d[f]=W[f]; changed++; } });
+      ['b1','b2'].forEach(b=>[0,1,2].forEach(t=>[0,1].forEach(i=>{ if(T[b][t][i]!==s.tiers[b][t][i]){ d.tiers[b][t][i]=T[b][t][i]; changed++; } })));
+      if(!d.allowed){ d.tiers.b1=d.tiers.b1.map(()=>[0,0]); d.tiers.b2=d.tiers.b2.map(()=>[0,0]); }
+    });
+    if(UI.target==='D') ST.active='D';
+    persist(); render(); toast(changed? `تم الحفظ على ${keys.length} شريحة` : 'لا توجد تغييرات');
+  };
+  const dc=$('#delCustom',m); if(dc) dc.onclick=()=>{ if(!confirm('حذف النسخة المخصصة؟')) return; ST.custom=null; if(ST.active==='D') ST.active='A'; persist(); render(); };
+}
+function bindSub(m){
+  $$('#subSeg button',m).forEach(b=>b.onclick=()=>{UI.sub=b.dataset.s; render();});
+  $$('#tgtSeg button',m).forEach(b=>b.onclick=()=>{UI.target=b.dataset.t; render();});
+}
+const TXT={versionNotes:'وصف النسخ', general:'الضوابط العامة لمنح الائتمان', guarantees:'الضمانات', documents:'المستندات المطلوبة', natConditions:'الشروط الخاصة بكل جنسية', dueDates:'تواريخ استحقاق الأقساط'};
+function txtEditor(){
+  const t=UI.txt; let val='', extra='';
+  if(t==='versionNotes'){ val=ST.texts.versionNotes[UI.txtVer]||''; extra=`<label class="f"><span>النسخة</span><select id="txtVer">${['A','B','C','D'].map(v=>`<option value="${v}"${v===UI.txtVer?' selected':''}>${VNAMES[v]}</option>`).join('')}</select></label>`; }
+  else if(t==='natConditions'){ val=(ST.texts.natConditions[UI.txtNat]||[]).join('\n'); extra=`<label class="f"><span>الجنسية</span><select id="txtNat">${ST.nats.map(n=>`<option value="${n.id}"${n.id===UI.txtNat?' selected':''}>${esc(n.name)}</option>`).join('')}</select></label>`; }
+  else if(t==='dueDates'){ val=ST.texts.dueDates.map(r=>r.join(' | ')).join('\n'); }
+  else val=ST.texts[t].join('\n');
+  return `<div class="card"><div class="grid g3">
+    <label class="f"><span>الصفحة</span><select id="txtSel">${Object.keys(TXT).map(k=>`<option value="${k}"${k===t?' selected':''}>${TXT[k]}</option>`).join('')}</select></label>${extra}</div>
+    <p class="small muted">${t==='dueDates'?'كل سطر: الفئة | تاريخ الاستحقاق':t==='versionNotes'?'فقرة واحدة تظهر في غلاف الدليل.':'كل سطر يمثل بنداً مستقلاً في الدليل.'}</p>
+    <textarea id="txtArea">${esc(val)}</textarea>
+    <div class="row" style="margin-top:10px"><button class="btn pri" id="txtSave">حفظ الصفحة</button></div></div>`;
+}
+function bindTxt(m){
+  $('#txtSel',m).onchange=e=>{UI.txt=e.target.value; render();};
+  if($('#txtVer',m)) $('#txtVer',m).onchange=e=>{UI.txtVer=e.target.value; render();};
+  if($('#txtNat',m)) $('#txtNat',m).onchange=e=>{UI.txtNat=e.target.value; render();};
+  $('#txtSave',m).onclick=()=>{
+    const v=$('#txtArea',m).value, lines=v.split('\n').map(x=>x.trim()).filter(Boolean), t=UI.txt;
+    if(t==='versionNotes') ST.texts.versionNotes[UI.txtVer]=v.trim();
+    else if(t==='natConditions') ST.texts.natConditions[UI.txtNat]=lines;
+    else if(t==='dueDates') ST.texts.dueDates=lines.map(l=>{ const p=l.split('|'); return [p[0].trim(), (p[1]||'').trim()]; });
+    else ST.texts[t]=lines;
+    persist(); toast('تم حفظ الصفحة');
+  };
+}
+
+/* ===== الترتيب ===== */
+function rRank(m){
+  const list=(dim)=>`<ul class="ranklist">${ST[dim].map((x,i)=>`<li><span class="n">${i+1}</span><input type="text" data-ren="${dim}" data-i="${i}" value="${esc(x.name)}">
+    <button class="btn sm" data-mv="${dim}" data-i="${i}" data-d="-1" ${i===0?'disabled':''} aria-label="رفع">▲</button>
+    <button class="btn sm" data-mv="${dim}" data-i="${i}" data-d="1" ${i===ST[dim].length-1?'disabled':''} aria-label="خفض">▼</button></li>`).join('')}</ul>`;
+  m.innerHTML=`<h2>ترتيب التصنيف</h2>
+  <div class="card"><h3>أثر النقل</h3>
+    <div class="seg" id="rmode"><button data-m="ladder" class="${ST.rankMode==='ladder'?'on':''}">الشروط تتبع المرتبة</button><button data-m="entity" class="${ST.rankMode==='entity'?'on':''}">الترتيب فقط</button></div>
+    <p class="note" style="margin:10px 0 0">${ST.rankMode==='ladder'
+      ? 'عند نقل شريحة إلى مرتبة جديدة تأخذ شروط وحدود تلك المرتبة، وتنزل الشرائح الأخرى بشروطها درجة. مثال: نقل المقيمين إلى المرتبة الثانية يمنحهم شروط المرتبة الثانية. الضوابط النصية الخاصة بكل شريحة تبقى معها.'
+      : 'يتغير الترتيب فقط وتبقى شروط كل شريحة كما هي، ثم يبين البرنامج أي تعارض ناتج لتعالجه يدوياً.'}</p>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(290px,1fr))">
+    <div class="card"><h3>ترتيب الجنسيات (الأعلى أولاً)</h3>${list('nats')}</div>
+    <div class="card"><h3>ترتيب جهات العمل (الأعلى أولاً)</h3>${list('emps')}</div>
+  </div>
+  <p class="small muted">ينطبق النقل على النسخة الأساسية والنسخة المخصصة، وتُشتق منه النسختان (ب) و(ج) تلقائياً لأن نسب التخفيف والتشديد مرتبطة بالمرتبة.</p>`;
+  $$('#rmode button',m).forEach(b=>b.onclick=()=>{ ST.rankMode=b.dataset.m; persist(); render(); });
+  $$('[data-mv]',m).forEach(b=>b.onclick=()=>{ const i=Number(b.dataset.i); moveRank(ST,b.dataset.mv,i,i+Number(b.dataset.d)); persist(); render(); toast('تم تحديث الترتيب'); });
+  $$('[data-ren]',m).forEach(inp=>inp.onchange=()=>{ ST[inp.dataset.ren][Number(inp.dataset.i)].name=inp.value.trim()||ST[inp.dataset.ren][Number(inp.dataset.i)].name; persist(); render(); });
+}
+
+/* ===== الاستثناءات ===== */
+function rExcept(m){
+  const desc=x=>{
+    const who=(x.nat==='*'?'كل الجنسيات':natName(ST,x.nat))+' / '+(x.emp==='*'?'كل جهات العمل':empName(ST,x.emp));
+    let what=EXF[x.field];
+    if(x.field==='amount'||x.field==='tenor') what+=(x.tier!=='*'?' – '+TIERN[x.tier]:'')+(x.band!=='*'?(x.band==='b1'?' – رواتب أقل من '+fmtN(ST.threshold):' – رواتب '+fmtN(ST.threshold)+' فأكثر'):'');
+    let val = x.field==='note'? '«'+x.value+'»' : x.field==='guarantee'&&x.op==='set'? GUAR[x.value] : x.field==='allowed'? (Number(x.value)?'مسموح':'غير مسموح') : x.field==='bank'&&x.op==='set'? BANK[x.value] : (x.op==='pct'?(x.value>0?'+':'')+x.value+'%':x.op==='add'?(x.value>0?'+':'')+x.value:'= '+x.value);
+    return `<b>${esc(who)}</b><br>${esc(what)}: ${esc(val)}${x.reason?`<br><span class="muted small">${esc(x.reason)}</span>`:''}`;
+  };
+  m.innerHTML=`<h2>الاستثناءات الخاصة</h2>
+  <div class="card"><p class="small muted" style="margin-top:0">ضع ضوابط أو حدوداً خاصة لجنسية أو جهة عمل محددة. يُطبق الاستثناء فوق أي نسخة معتمدة (أ، ب، ج، المخصصة) ولا يتجاوز سقوف بنك الكويت المركزي.</p>
+  <div class="grid g3">
+    <label class="f"><span>الجنسية</span><select id="xNat"><option value="*">كل الجنسيات</option>${ST.nats.map(n=>`<option value="${n.id}">${esc(n.name)}</option>`).join('')}</select></label>
+    <label class="f"><span>جهة العمل</span><select id="xEmp"><option value="*">كل جهات العمل</option>${ST.emps.map(n=>`<option value="${n.id}">${esc(n.name)}</option>`).join('')}</select></label>
+    <label class="f"><span>البند</span><select id="xF">${Object.keys(EXF).map(k=>`<option value="${k}">${EXF[k]}</option>`).join('')}</select></label>
+    <label class="f" id="xBandL"><span>شريحة الراتب</span><select id="xBand"><option value="*">الكل</option><option value="b1">أقل من ${fmtN(ST.threshold)}</option><option value="b2">${fmtN(ST.threshold)} فأكثر</option></select></label>
+    <label class="f" id="xTierL"><span>مدة الخدمة</span><select id="xTier"><option value="*">الكل</option>${TIERN.map((t,i)=>`<option value="${i}">${t}</option>`).join('')}</select></label>
+    <label class="f" id="xOpL"><span>العملية</span><select id="xOp">${Object.keys(EXOP).map(k=>`<option value="${k}">${EXOP[k]}</option>`).join('')}</select></label>
+    <label class="f"><span>القيمة</span><span id="xValW"></span></label>
+    <label class="f"><span>السبب / المرجع</span><input type="text" id="xWhy" placeholder="مثال: قرار لجنة الائتمان رقم …"></label>
+  </div>
+  <div class="row" style="margin-top:12px"><button class="btn pri" id="xAdd">إضافة الاستثناء</button></div></div>
+  <div class="card"><h3>الاستثناءات الحالية</h3>${ST.exceptions.length?`<ul class="exl">${ST.exceptions.map((x,i)=>`<li class="${x.active?'':'off'}"><div class="d">${desc(x)}</div>
+    <button class="btn sm" data-xt="${i}">${x.active?'إيقاف':'تفعيل'}</button><button class="btn sm danger" data-xd="${i}">حذف</button></li>`).join('')}</ul>`:'<p class="muted">لا توجد استثناءات.</p>'}</div>`;
+  const upd=()=>{
+    const f=$('#xF',m).value, tiered=f==='amount'||f==='tenor';
+    $('#xBandL',m).classList.toggle('hidden',!tiered); $('#xTierL',m).classList.toggle('hidden',!tiered);
+    const noOp = ['guarantee','allowed','bank','note'].includes(f);
+    $('#xOpL',m).classList.toggle('hidden',noOp); if(noOp) $('#xOp',m).value='set';
+    let w;
+    if(f==='guarantee') w=`<select id="xVal">${GUAR.map((g,i)=>`<option value="${i}">${g}</option>`).join('')}</select>`;
+    else if(f==='allowed') w=`<select id="xVal"><option value="1">مسموح</option><option value="0">غير مسموح</option></select>`;
+    else if(f==='bank') w=`<select id="xVal"><option value="2">${BANK[2]}</option><option value="1">${BANK[1]}</option></select>`;
+    else if(f==='note') w=`<input type="text" id="xVal" placeholder="نص الضابط">`;
+    else w=`<input type="number" id="xVal" placeholder="${f==='amount'?'مثال: 20000 أو 10 للنسبة':'قيمة'}">`;
+    $('#xValW',m).innerHTML=w;
+  };
+  $('#xF',m).onchange=upd; upd();
+  $('#xAdd',m).onclick=()=>{
+    const f=$('#xF',m).value, v=$('#xVal',m).value.trim();
+    if(v===''){ toast('أدخل القيمة'); return; }
+    ST.exceptions.push({id:Date.now(), active:true, nat:$('#xNat',m).value, emp:$('#xEmp',m).value, field:f, op:$('#xOp',m).value, value: f==='note'? v : Number(v), band:$('#xBand',m).value, tier:$('#xTier',m).value, reason:$('#xWhy',m).value.trim()});
+    persist(); render(); toast('تمت إضافة الاستثناء');
+  };
+  $$('[data-xt]',m).forEach(b=>b.onclick=()=>{ const x=ST.exceptions[b.dataset.xt]; x.active=!x.active; persist(); render(); });
+  $$('[data-xd]',m).forEach(b=>b.onclick=()=>{ ST.exceptions.splice(Number(b.dataset.xd),1); persist(); render(); });
+}
+
+/* ===== الإعدادات ===== */
+function rSettings(m){
+  const P=ST.params;
+  const ptab=(v, rowsN, rowsE)=>`<div class="tw"><table class="t params"><thead><tr><th>مرتبة الجنسية</th>${rowsN.map(r=>`<th>${r[1]}</th>`).join('')}</tr></thead><tbody>
+    ${ST.nats.map((n,i)=>`<tr><th>${i+1}. ${esc(n.name)}</th>${rowsN.map(r=> r[0]==='suspendLastEmp'
+      ? `<td><input type="checkbox" data-p="${v}.${r[0]}.${i}" ${P[v][r[0]][i]?'checked':''}></td>`
+      : `<td><input type="number" data-p="${v}.${r[0]}.${i}" value="${P[v][r[0]][i]}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="tw" style="margin-top:10px"><table class="t params"><thead><tr><th>مرتبة جهة العمل</th><th>${rowsE}</th></tr></thead><tbody>
+    ${ST.emps.map((e,i)=>`<tr><th>${i+1}. ${esc(e.name)}</th><td><input type="number" data-p="${v}.amtEmp.${i}" value="${P[v].amtEmp[i]!=null?P[v].amtEmp[i]:0}"></td></tr>`).join('')}</tbody></table></div>`;
+  m.innerHTML=`<h2>الإعدادات</h2>
+  <div class="card"><h3>نسب النسخة (ب) المخففة</h3>
+  <p class="small muted" style="margin-top:0">نسبة رفع الحد = نسبة الجنسية + نسبة جهة العمل. الشرائح الأعلى تأخذ نسبة أكبر حتى يبقى الترتيب سليماً. تمديد المدة يطبق على شرائح التمويل الإسكاني فقط (أكثر من ${ST.caps.consumerTenor} شهراً).</p>
+  ${ptab('B',[['amtNat','رفع الحد %'],['tenorExt','تمديد المدة (شهر)'],['salaryCut','خفض الحد الأدنى للراتب %'],['serviceCut','خفض مدة الخدمة %'],['regCut','خفض أشهر الانتظام'],['guarCut','تخفيف الضمان (درجات)']],'تعديل إضافي للحد %')}</div>
+  <div class="card"><h3>نسب النسخة (ج) المشددة</h3>
+  <p class="small muted" style="margin-top:0">نسبة خفض الحد = نسبة الجنسية + نسبة جهة العمل. الشرائح الأدنى تتحمل الخفض الأكبر.</p>
+  ${ptab('C',[['amtNat','خفض الحد %'],['tenorCap','سقف المدة (شهر)'],['salaryAdd','رفع الحد الأدنى للراتب %'],['serviceAdd','زيادة مدة الخدمة (يوم)'],['regAdd','زيادة أشهر الانتظام'],['ageCap','سقف السن'],['dbrCap','سقف الاستقطاع %'],['guarAdd','تشديد الضمان (درجات)'],['suspendLastEmp','إيقاف آخر جهة عمل']],'خفض إضافي للحد %')}</div>
+  <div class="card"><h3>سقوف بنك الكويت المركزي والبيانات العامة</h3><div class="grid g3">
+    ${[['caps.consumer','سقف التمويل الاستهلاكي'],['caps.total','سقف التمويل الإجمالي (الإسكاني)'],['caps.consumerTenor','مدة الاستهلاكي (شهر)'],['caps.housingTenor','مدة الإسكاني (شهر)'],['caps.dbr','سقف نسبة الاستقطاع %'],['caps.card','سقف البطاقة'],['threshold','حد شريحة الرواتب المرتفعة']].map(([p,l])=>`<label class="f"><span>${l}</span><input type="number" data-g="${p}" value="${p.split('.').reduce((o,k)=>o[k],ST)}"></label>`).join('')}
+    ${[['meta.title','عنوان الدليل'],['meta.org','الجهة المُعِدّة'],['meta.edition','تاريخ الإصدار']].map(([p,l])=>`<label class="f"><span>${l}</span><input type="text" data-g="${p}" value="${esc(p.split('.').reduce((o,k)=>o[k],ST))}"></label>`).join('')}
+  </div></div>
+  <div class="card"><h3>كلمة المرور ومشاركة البرنامج</h3>
+    <div class="grid g3"><label class="f"><span>كلمة مرور جديدة</span><input type="password" id="np1"></label><label class="f"><span>تأكيد كلمة المرور</span><input type="password" id="np2"></label></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chPw">تغيير كلمة المرور</button><button class="btn pri" id="dlApp">تنزيل البرنامج بالإعدادات الحالية</button></div>
+    <p class="note" style="margin:10px 0 0">«تنزيل البرنامج» ينتج ملف HTML واحداً مشفراً يحتوي كل تعديلاتك ويُفتح بكلمة المرور الحالية. هذا هو الملف الذي ترسله لفريقك أو ترفعه صفحة ويب. أرسل كلمة المرور لهم بشكل منفصل.</p>
+  </div>
+  <div class="card"><h3>النسخ الاحتياطي</h3>
+    <div class="row"><button class="btn" id="expJ">تصدير الإعدادات (JSON)</button><label class="btn" style="display:inline-block">استيراد إعدادات<input type="file" id="impJ" accept=".json,application/json" class="hidden"></label><button class="btn danger" id="rst">استعادة الإعدادات الأصلية</button></div>
+    <p class="small muted">ملف JSON غير مشفر، فاحفظه في مكان آمن.</p>
+  </div>`;
+  $$('[data-p]',m).forEach(inp=>inp.onchange=()=>{ const [v,f,i]=inp.dataset.p.split('.'); ST.params[v][f][Number(i)] = inp.type==='checkbox'? inp.checked : Number(inp.value); persist(); render(); });
+  $$('[data-g]',m).forEach(inp=>inp.onchange=()=>{ const ps=inp.dataset.g.split('.'); let o=ST; for(let i=0;i<ps.length-1;i++) o=o[ps[i]]; o[ps[ps.length-1]] = inp.type==='number'? Number(inp.value) : inp.value; persist(); render(); });
+  $('#chPw',m).onclick=async()=>{
+    const a=$('#np1',m).value, b=$('#np2',m).value;
+    if(a.length<6){ toast('كلمة المرور 6 أحرف على الأقل'); return; }
+    if(a!==b){ toast('كلمتا المرور غير متطابقتين'); return; }
+    SALT=crypto.getRandomValues(new Uint8Array(16)); KEY=await deriveKey(a,SALT,ITER); persist();
+    toast('تم التغيير. نزّل البرنامج الآن ليعمل الملف بكلمة المرور الجديدة.');
+  };
+  $('#dlApp',m).onclick=async()=>{
+    const box=await sealObj(KEY,SALT,ITER,ST);
+    const M1='/*VA'+'ULT*/', M2='/*END'+'VAULT*/';
+    const a=SRC.indexOf(M1), b=SRC.indexOf(M2);
+    const html=SRC.slice(0,a+M1.length)+JSON.stringify(box)+SRC.slice(b);
+    download('credit-guide-program.html', html, 'text/html');
+  };
+  $('#expJ',m).onclick=()=>download('credit-guide-settings.json', JSON.stringify(ST,null,1), 'application/json');
+  $('#impJ',m).onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const o=JSON.parse(r.result); if(!o.base||!o.nats||!o.emps) throw 0; ST=o; persist(); UI.nat=ST.nats[0].id; UI.emp=ST.emps[0].id; render(); toast('تم الاستيراد'); }catch(err){ toast('ملف غير صالح'); } }; r.readAsText(f); };
+  $('#rst',m).onclick=async()=>{ if(!confirm('استعادة الإعدادات الأصلية المضمنة في الملف؟ ستفقد تعديلاتك غير المصدّرة.')) return; const pw=prompt('أدخل كلمة مرور الملف الأصلية'); if(pw==null) return; try{ const r=await openObj(pw,VAULT); ST=r.obj; persist(); UI.nat=ST.nats[0].id; UI.emp=ST.emps[0].id; render(); toast('تمت الاستعادة'); }catch(e){ toast('كلمة المرور غير صحيحة'); } };
+}
+
+/* ===== الدليل (PDF) ===== */
+function guideHTML(v){
+  v=v||ST.active;
+  const segs=finalSegments(ST,v), iss=validateMarked(ST,v), c=ST.caps;
+  const vcol={A:'#0f5c4d',B:'#1d5fa8',C:'#a33b21',D:'#6b4aa0'}[v];
+  const head=(t)=>`<div class="ghead"><span>${esc(ST.meta.title)} – ${VNAMES[v]}</span><span>${esc(ST.meta.org)} · ${esc(ST.meta.edition)} · وثيقة داخلية</span></div><h2>${t}</h2>`;
+  const ul=a=>`<ul>${(a||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+  const bl=b=> b==='b1'?'رواتب أقل من '+fmtN(ST.threshold)+' د.ك':'رواتب '+fmtN(ST.threshold)+' د.ك فأكثر';
+  let h=`<div class="guide">`;
+  h+=`<div class="pg cover"><div style="color:#555">${esc(ST.meta.org)}</div><h1>${esc(ST.meta.title)}</h1>
+    <div class="v" style="background:${vcol}">${VNAMES[v]}</div>
+    <div style="max-width:620px;color:#333">${esc(ST.texts.versionNotes[v]||'')}</div>
+    <div style="color:#555">تاريخ الإصدار: ${esc(ST.meta.edition)} · تاريخ الطباعة: ${new Date().toLocaleDateString('en-GB')}</div>
+    <div dir="ltr" style="color:#999;font-size:11px">This is an internal document and should not be shared with unauthorized users.</div></div>`;
+  // الترتيب والضوابط العامة
+  h+=`<div class="pg">${head('أسس التصنيف والضوابط العامة')}
+    <div class="box"><b>ترتيب أفضلية الجنسية:</b> ${ST.nats.map((n,i)=>`<span class="rk">${i+1}</span>${esc(n.name)}`).join(' &nbsp; ')}<br>
+    <b>ترتيب أفضلية جهة العمل:</b> ${ST.emps.map((n,i)=>`<span class="rk">${i+1}</span>${esc(n.name)}`).join(' &nbsp; ')}<br>
+    <span style="font-size:11px;color:#555">القاعدة: لا تحصل شريحة أدنى تصنيفاً على حدود أو شروط أفضل من شريحة أعلى منها.</span></div>
+    <h3>سقوف بنك الكويت المركزي</h3>
+    <table><tr><th>التمويل الاستهلاكي</th><th>التمويل الإسكاني (إجمالي)</th><th>مدة الاستهلاكي</th><th>مدة الإسكاني</th><th>نسبة الاستقطاع</th><th>البطاقات الائتمانية</th></tr>
+    <tr><td>25 ضعف الراتب بحد ${fmtN(c.consumer)} د.ك</td><td>${fmtN(c.total)} د.ك</td><td>${c.consumerTenor} شهراً</td><td>${c.housingTenor} شهراً</td><td>${c.dbr}% للموظف، 30% للمتقاعد</td><td>10 أضعاف الراتب بحد ${fmtN(c.card)} د.ك</td></tr></table>
+    <h3>الضوابط العامة لمنح الائتمان</h3>${ul(ST.texts.general)}</div>`;
+  h+=`<div class="pg">${head('الضمانات والمستندات المطلوبة')}<h3>الضمانات الخاصة بالتمويل الاستهلاكي والإسكاني</h3>${ul(ST.texts.guarantees)}
+    <h3>درجات الضمان المستخدمة في الدليل</h3><table><tr>${GUAR.map((g,i)=>`<th>الدرجة ${i}</th>`).join('')}</tr><tr>${GUAR.map(g=>`<td>${g}</td>`).join('')}</tr></table>
+    <h3>المستندات المطلوبة (عميل / كفيل)</h3>${ul(ST.texts.documents)}</div>`;
+  if(v==='B'||v==='C'){
+    const p=ST.params[v];
+    const cols = v==='B'? [['amtNat','رفع الحد %'],['tenorExt','تمديد المدة الإسكانية (شهر)'],['salaryCut','خفض الحد الأدنى للراتب %'],['serviceCut','خفض مدة الخدمة %'],['regCut','خفض أشهر الانتظام'],['guarCut','تخفيف الضمان']]
+      : [['amtNat','خفض الحد %'],['tenorCap','سقف المدة'],['salaryAdd','رفع الحد الأدنى للراتب %'],['serviceAdd','زيادة مدة الخدمة (يوم)'],['regAdd','زيادة أشهر الانتظام'],['ageCap','سقف السن'],['dbrCap','سقف الاستقطاع %'],['guarAdd','تشديد الضمان'],['suspendLastEmp','إيقاف '+ST.emps[ST.emps.length-1].name]];
+    h+=`<div class="pg">${head('معايير '+VNAMES[v])}
+      <table><tr><th>الجنسية</th>${cols.map(x=>`<th>${x[1]}</th>`).join('')}</tr>${ST.nats.map((n,i)=>`<tr><td class="l"><span class="rk">${i+1}</span>${esc(n.name)}</td>${cols.map(x=>`<td>${x[0]==='suspendLastEmp'?(p[x[0]][i]?'نعم':'لا'):p[x[0]][i]}</td>`).join('')}</tr>`).join('')}</table>
+      <table><tr><th>جهة العمل</th>${ST.emps.map((e,i)=>`<th><span class="rk">${i+1}</span>${esc(e.name)}</th>`).join('')}</tr><tr><td>${v==='B'?'تعديل إضافي للحد %':'خفض إضافي للحد %'}</td>${ST.emps.map((e,i)=>`<td>${p.amtEmp[Math.min(i,p.amtEmp.length-1)]}</td>`).join('')}</tr></table>
+      <p style="font-size:11px;color:#555">تُحسب نسبة التعديل لكل شريحة بجمع نسبة الجنسية ونسبة جهة العمل، وتُقرّب المبالغ إلى أقرب 500 د.ك، ولا تتجاوز سقوف بنك الكويت المركزي.</p></div>`;
+  }
+  ST.nats.forEach((n,ni)=>{
+    h+=`<div class="pg">${head(`<span class="rk">${ni+1}</span>شريحة العملاء: ${esc(n.name)}`)}
+      <h3>الشروط والمرتكزات حسب جهة العمل</h3>
+      <table><tr><th>جهة العمل</th><th>التمويل</th><th>الحد الأدنى للراتب</th><th>الحد الأدنى للخدمة</th><th>بنك الراتب</th><th>انتظام الراتب</th><th>السن القصوى</th><th>الاستقطاع</th><th>الضمان المطلوب</th><th>حد البطاقة</th></tr>
+      ${ST.emps.map((e,ei)=>{ const s=segs[K(n.id,e.id)]; return s.allowed? `<tr><td class="l"><span class="rk">${ei+1}</span>${esc(e.name)}</td><td class="ok">مسموح</td><td>${fmtN(s.minSalary)} د.ك</td><td>${fmtField(ST,'minService',s.minService)}</td><td>${BANK[s.bank]}</td><td>${fmtField(ST,'regularity',s.regularity)}</td><td>${s.maxAge}</td><td>${s.dbr}%</td><td>${GUAR[s.guarantee]}</td><td>${s.card?fmtN(s.card):'—'}</td></tr>`
+        : `<tr><td class="l"><span class="rk">${ei+1}</span>${esc(e.name)}</td><td class="bad">غير مسموح</td><td colspan="8" class="na">لا يتم التعامل مع هذه الشريحة في هذه النسخة</td></tr>`; }).join('')}</table>
+      <h3>الحد الأقصى لتكلفة التمويل (د.ك) / الحد الأقصى لمدة الائتمان (شهر)</h3>
+      <table><tr><th rowspan="2">جهة العمل</th><th colspan="3">${bl('b1')}</th><th colspan="3">${bl('b2')}</th></tr>
+      <tr>${[0,1].map(()=>TIERN.map(t=>`<th>${t}</th>`).join('')).join('')}</tr>
+      ${ST.emps.map((e,ei)=>{ const s=segs[K(n.id,e.id)]; if(!s.allowed) return `<tr><td class="l"><span class="rk">${ei+1}</span>${esc(e.name)}</td><td colspan="6" class="na">غير مسموح</td></tr>`;
+        return `<tr><td class="l"><span class="rk">${ei+1}</span>${esc(e.name)}</td>${['b1','b2'].map(b=>s.tiers[b].map(x=>`<td>${x[0]?fmtAmt(ST,x[0])+'<br>'+x[1]+' شهراً':'—'}</td>`).join('')).join('')}</tr>`; }).join('')}</table>
+      <div style="font-size:10.5px;color:#555">تبدأ شريحة «${TIERN[0]}» من الحد الأدنى لمدة الخدمة الموضح أعلاه. المبالغ التي تتجاوز ${fmtN(c.consumer)} د.ك تمثل الحد الإجمالي شاملاً التمويل الإسكاني.</div>
+      ${(()=>{ const notes=ST.emps.map(e=>{ const s=segs[K(n.id,e.id)]; return s.allowed&&s.notes? `<li><b>${esc(e.name)}:</b> ${esc(s.notes)}</li>`:''; }).join(''); return notes?`<h3>ضوابط خاصة حسب جهة العمل</h3><ul>${notes}</ul>`:''; })()}
+      ${(ST.texts.natConditions[n.id]||[]).length?`<h3>الشروط والضوابط الخاصة بالشريحة</h3>${ul(ST.texts.natConditions[n.id])}`:''}
+    </div>`;
+  });
+  const exs=ST.exceptions.filter(x=>x.active);
+  h+=`<div class="pg">${head('الاستثناءات وتواريخ الاستحقاق والتحقق')}
+    <h3>الاستثناءات الخاصة المطبقة</h3>
+    ${exs.length?`<table><tr><th>الجنسية</th><th>جهة العمل</th><th>البند</th><th>التعديل</th><th>السبب / المرجع</th></tr>${exs.map(x=>`<tr><td>${x.nat==='*'?'الكل':esc(natName(ST,x.nat))}</td><td>${x.emp==='*'?'الكل':esc(empName(ST,x.emp))}</td><td>${EXF[x.field]}${(x.field==='amount'||x.field==='tenor')&&x.tier!=='*'?' – '+TIERN[x.tier]:''}</td><td>${x.field==='note'?esc(x.value):x.field==='guarantee'?GUAR[x.value]:x.field==='allowed'?(Number(x.value)?'مسموح':'غير مسموح'):x.field==='bank'?BANK[x.value]:x.op==='pct'?x.value+'%':x.op==='add'?(x.value>0?'+':'')+x.value:'= '+x.value}</td><td>${esc(x.reason||'')}</td></tr>`).join('')}</table>`:'<p>لا توجد استثناءات مطبقة.</p>'}
+    <h3>تواريخ استحقاق الأقساط</h3><table><tr><th>الفئة</th><th>تاريخ الاستحقاق</th></tr>${ST.texts.dueDates.map(r=>`<tr><td class="l">${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>
+    <h3>نتيجة فحص منطقية الترتيب</h3>
+    ${iss.length?`<p class="bad">يوجد ${iss.length} تنبيه:</p><ul>${iss.map(i=>`<li>${esc(i.msg)}${i.fromEx?' (ناتج عن استثناء معتمد)':''}</li>`).join('')}</ul>`:'<p class="ok">تم التحقق آلياً: لا توجد أي شريحة أدنى تصنيفاً تحصل على شروط أفضل من شريحة أعلى، ولا تجاوز لسقوف بنك الكويت المركزي.</p>'}
+    <div style="margin-top:30px;display:flex;justify-content:space-around;font-size:12px"><div>إعداد: ${esc(ST.meta.org)}<br><br>التوقيع: ...............</div><div>اعتماد: .........................<br><br>التاريخ: ...............</div></div>
+  </div></div>`;
+  return h;
+}
+function guideCSS(){ const css=document.querySelector('style').textContent; return css; }
+function doPrint(){
+  $('#print').innerHTML=guideHTML();
+  try{ window.print(); }catch(e){ doDownloadGuide(); }
+}
+function doDownloadGuide(){
+  const name={A:'A',B:'B',C:'C',D:'custom'}[ST.active];
+  const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(ST.meta.title)} – ${VNAMES[ST.active]}</title><style>${guideCSS()} body{background:#fff} #print{display:block} .bar-print{position:sticky;top:0;background:#0f5c4d;color:#fff;padding:10px;text-align:center;font-family:Tahoma} .bar-print button{font:inherit;padding:6px 16px;border-radius:8px;border:0} @media print{.bar-print{display:none}}</style></head><body><div class="bar-print">اضغط لحفظ الدليل PDF أو طباعته: <button onclick="window.print()">طباعة / PDF</button></div><div id="print">${guideHTML()}</div></body></html>`;
+  download('credit-guide-'+name+'.html', html, 'text/html');
+}
+function rPreview(m){
+  m.innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">معاينة ${VNAMES[ST.active]}</h2><div class="row"><button class="btn pri" id="pp">طباعة / حفظ PDF</button><button class="btn" id="pd">تنزيل نسخة للطباعة</button></div></div><div class="preview">${guideHTML()}</div>`;
+  $('#pp',m).onclick=doPrint; $('#pd',m).onclick=doDownloadGuide;
+}
+</script>
+</body>
+</html>
